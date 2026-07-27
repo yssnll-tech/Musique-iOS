@@ -1,0 +1,3 @@
+# Ce dossier reçoit le site web buildé (contenu de web/dist) avant la génération
+# du projet Xcode. En CI, l'étape « build web » le remplit automatiquement.
+# En local : `cd web && npm run build && rm -rf ../ios/Resources/web && cp -R dist/. ../ios/Resources/web/`

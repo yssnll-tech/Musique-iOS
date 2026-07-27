@@ -1,0 +1,23 @@
+# Dépendances
+node_modules/
+
+# Artefacts de build web
+web/dist/
+
+# Contenu web copié dans la coquille iOS (généré par la CI ou en local)
+ios/Resources/web/*
+!ios/Resources/web/.gitkeep
+
+# Projet Xcode généré par XcodeGen (ne pas versionner : régénéré à chaque build)
+*.xcodeproj/
+*.xcworkspace/
+
+# Artefacts de build iOS
+build/
+DerivedData/
+*.ipa
+*.xcarchive
+
+# Divers macOS / éditeurs
+.DS_Store
+*.log

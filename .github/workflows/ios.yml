@@ -1,0 +1,91 @@
+name: Build iOS (IPA non signée)
+
+# Construit l'app web, l'empaquette dans la coquille iOS, puis produit une IPA
+# NON signée téléchargeable en artefact. À installer ensuite via AltStore / Sideloadly
+# (qui la signent avec votre propre compte Apple).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    # macos-15 embarque Xcode 16 par défaut. INDISPENSABLE : XcodeGen (2.44+) génère
+    # le projet au format « objectVersion 77 », que seul Xcode 16+ sait ouvrir. Le
+    # runner macos-14 (Xcode 15.4) le refuse avec « future Xcode project file format (77) ».
+    # (macos-14 est par ailleurs en cours de dépréciation par GitHub.)
+    runs-on: macos-15
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v5
+
+      - name: Installer Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Construire l'app web
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Copier le web buildé dans la coquille iOS
+        run: |
+          rm -rf ios/Resources/web
+          mkdir -p ios/Resources/web
+          cp -R web/dist/. ios/Resources/web/
+          echo "Contenu embarqué :"
+          ls -la ios/Resources/web
+
+      - name: Installer XcodeGen
+        run: brew install xcodegen
+
+      - name: Générer le projet Xcode
+        run: xcodegen generate
+
+      - name: Diagnostic (version de Xcode et schemes disponibles)
+        run: |
+          xcodebuild -version
+          xcodebuild -list -project Musique.xcodeproj
+
+      - name: Archiver (build iOS non signé)
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project Musique.xcodeproj \
+            -scheme Musique \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$PWD/build/Musique.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
+
+      - name: Empaqueter l'IPA (Payload/*.app)
+        run: |
+          set -e
+          APP_PATH="build/Musique.xcarchive/Products/Applications/Musique.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::App introuvable dans l'archive : $APP_PATH"
+            find build/Musique.xcarchive -maxdepth 4 -name '*.app' -print || true
+            exit 1
+          fi
+          rm -rf build/Payload
+          mkdir -p build/Payload
+          cp -R "$APP_PATH" build/Payload/
+          (cd build && zip -qry Musique-unsigned.ipa Payload)
+          echo "IPA créée :"
+          ls -lh build/Musique-unsigned.ipa
+
+      - name: Publier l'artefact IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Musique-unsigned-ipa
+          path: build/Musique-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30

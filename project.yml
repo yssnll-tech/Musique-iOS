@@ -1,0 +1,57 @@
+name: Musique
+options:
+  bundleIdPrefix: com.musique
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+  # Le nom du groupe de dérivation n'a pas d'importance ici.
+
+settings:
+  base:
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    ENABLE_BITCODE: NO
+    # Signature désactivée : l'IPA produite est NON signée. Un outil de sideload
+    # (AltStore, Sideloadly) la signera avec votre compte Apple à l'installation.
+    CODE_SIGNING_ALLOWED: NO
+    CODE_SIGNING_REQUIRED: NO
+    CODE_SIGN_IDENTITY: ""
+    CODE_SIGN_STYLE: Manual
+
+targets:
+  Musique:
+    type: application
+    platform: iOS
+    sources:
+      - path: ios/Sources
+      - path: ios/Assets.xcassets
+      # Dossier du site web buildé (rempli par la CI avant la génération du projet).
+      # Référence de dossier : la hiérarchie est préservée telle quelle dans le bundle.
+      - path: ios/Resources/web
+        type: folder
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_NAME: Musique
+        PRODUCT_BUNDLE_IDENTIFIER: com.musique.app
+        INFOPLIST_FILE: ios/Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+
+# Scheme partagé explicite. XcodeGen ne génère AUCUN scheme partagé par défaut :
+# Xcode en crée un privé à l'ouverture du projet, mais il n'est pas commité et
+# reste invisible pour la ligne de commande. En CI, `xcodebuild -scheme Musique`
+# a donc besoin de ce scheme partagé, sinon la commande ne le trouve pas et
+# l'archivage échoue avant même de compiler.
+schemes:
+  Musique:
+    build:
+      targets:
+        Musique: all
+    archive:
+      config: Release

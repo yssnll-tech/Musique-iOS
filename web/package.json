@@ -1,0 +1,27 @@
+{
+    "name": "musique-web",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc --noEmit && vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "lucide-react": "^0.400.0",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "react-router-dom": "^7.9.1"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.1.17",
+        "@types/node": "^20.19.43",
+        "@types/react": "^19.2.0",
+        "@types/react-dom": "^19.2.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.1.17",
+        "typescript": "^5.7.2",
+        "vite": "^6.0.7"
+    }
+}
